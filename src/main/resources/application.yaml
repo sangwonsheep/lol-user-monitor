@@ -15,7 +15,18 @@ spring:
     username: ${DOCKER_MYSQL_USERNAME}
     password: ${DOCKER_MYSQL_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
+  task:
+    scheduling:
+      enabled: true # ???? ???
 decorator:
   datasource:
     p6spy:
       enable-logging: true
+
+# ??? api key
+riot:
+  api:
+    key: ${RIOT_API_KEY}
+
+discord:
+  url: ${DISCORD_WEBHOOK_URL}
