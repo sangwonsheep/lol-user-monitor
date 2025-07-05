@@ -1,0 +1,21 @@
+# -----------------------------
+#       LOCAL SETTINGS
+# -----------------------------
+spring:
+  config:
+    activate:
+      on-profile: local
+  application:
+    name: lol.local.server.api
+  jpa:
+    hibernate:
+      ddl-auto: create
+  datasource:
+    url: ${DOCKER_MYSQL_URL}
+    username: ${DOCKER_MYSQL_USERNAME}
+    password: ${DOCKER_MYSQL_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+decorator:
+  datasource:
+    p6spy:
+      enable-logging: true
