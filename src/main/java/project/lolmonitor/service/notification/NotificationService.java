@@ -8,14 +8,16 @@ import org.springframework.web.client.RestClient;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import project.lolmonitor.infra.riot.datahandler.ChampionDataHandler;
 import project.lolmonitor.infra.riot.entity.GameSession;
 
-@Service
 @Slf4j
+@Service
 @RequiredArgsConstructor
 public class NotificationService {
 
 	private final RestClient restClient;
+	private final ChampionDataHandler championDataHandler;
 
 	@Value("${discord.url}")
 	private String discordUrl;
@@ -36,6 +38,7 @@ public class NotificationService {
             
             📍 **게임 정보**
             • 게임 모드 : %s
+            • 챔피언 : %s
             • 팀 : %s
             • 경과 시간 : %d분
             
@@ -43,10 +46,20 @@ public class NotificationService {
             """,
 			playerName,
 			getGameModeKorean(gameSession.getGameMode()),
+			getChampionName(String.valueOf(gameSession.getChampionId())),
 			gameSession.getTeamId() == 100L ? "🔵 블루" : "🔴 레드",
 			gameSession.getGameLength() > 0 ? gameSession.getGameLength() / 60 : 0,
 			playerName.replace("#", "-")
 		);
+	}
+
+	private String getChampionName(String championKey) {
+		String championName = championDataHandler.getChampionName(championKey);
+		if (championName == null || championName.isEmpty()) {
+			return "";
+		}
+
+		return championName;
 	}
 
 	private String getGameModeKorean(String gameMode) {
