@@ -21,9 +21,9 @@ public class RiotController {
 	 * 라이엇 유저 DB에 추가 및 현재 게임 중 상태 확인
 	 */
 	@GetMapping
-	public ResponseEntity<String> checkGameStatus(@RequestParam String gameNickName, @RequestParam String tagLine) {
-		riotService.checkGameStatus(gameNickName, tagLine);
-		return ResponseEntity.ok("✅ " + gameNickName + "#" + tagLine + " 상태 확인 완료");
+	public ResponseEntity<String> checkGameStatus(@RequestParam String gameNickname, @RequestParam String tagLine) {
+		riotService.checkGameStatus(gameNickname, tagLine);
+		return ResponseEntity.ok("✅ " + gameNickname + "#" + tagLine + " 상태 확인 완료");
 	}
 
 	/**
