@@ -8,7 +8,7 @@ import org.springframework.web.client.RestClient;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import project.lolmonitor.client.riot.dto.CurrentGameInfo;
+import project.lolmonitor.infra.riot.entity.GameSession;
 
 @Service
 @Slf4j
@@ -23,26 +23,28 @@ public class NotificationService {
 	@Value("${notification.retry.max-attempts:3}")
 	private int maxRetryAttempts;
 
-	public void sendGameStartNotification(String playerName, CurrentGameInfo gameInfo) {
-		String message = createGameStartMessage(playerName, gameInfo);
+	public void sendGameStartNotification(String playerName, GameSession gameSession) {
+		String message = createGameStartMessage(playerName, gameSession);
 		sendDiscordNotification(message);
 	}
 
-	private String createGameStartMessage(String playerName, CurrentGameInfo gameInfo) {
+	private String createGameStartMessage(String playerName, GameSession gameSession) {
 		return String.format("""
             🚨 **비상**
             
             🎮 **%s**님이 게임을 시작했습니다!
             
             📍 **게임 정보**
-            • 게임 모드: %s
-            • 경과 시간: %d분
+            • 게임 모드 : %s
+            • 팀 : %s
+            • 경과 시간 : %d분
             
             🔗 [OP.GG에서 보기](https://op.gg/summoners/kr/%s)
             """,
 			playerName,
-			getGameModeKorean(gameInfo.gameMode()),
-			gameInfo.gameLength() != null ? gameInfo.gameLength() / 60 : 0,
+			getGameModeKorean(gameSession.getGameMode()),
+			gameSession.getTeamId() == 100L ? "🔵 블루" : "🔴 레드",
+			gameSession.getGameLength() > 0 ? gameSession.getGameLength() / 60 : 0,
 			playerName.replace("#", "-")
 		);
 	}
