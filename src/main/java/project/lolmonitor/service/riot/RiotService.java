@@ -71,6 +71,7 @@ public class RiotService {
 		}
 	}
 
+	// 현재 게임 상태 확인
 	private void checkCurrentGameStatus(String playerDisplayName, String puuid) {
 		try {
 			// 게임 중 상태 확인 API 호출 (200: 게임 중, 404: 게임 중이 아님)
@@ -89,6 +90,7 @@ public class RiotService {
 		}
 	}
 
+	// 게임 중인지 확인
 	private void handleGameInProgress(String playerDisplayName, CurrentGameInfo currentGame, String puuid) {
 		boolean gameProgressStatus = gameSessionDataHandler.existsGameSession(currentGame.gameId());
 
@@ -116,7 +118,7 @@ public class RiotService {
 		}
 	}
 
-
+	// 현재 게임 중인 플레이어와 모니터링하는 플레이어 명이 일치한지
 	private CurrentGameParticipant findPlayerInGame(CurrentGameInfo currentGame, String puuid) {
 		return currentGame.participants().stream()
 						  .filter(p -> puuid.equals(p.puuid()))
