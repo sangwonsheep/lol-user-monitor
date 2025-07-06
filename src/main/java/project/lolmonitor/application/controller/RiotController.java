@@ -1,5 +1,9 @@
 package project.lolmonitor.application.controller;
 
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -8,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import lombok.RequiredArgsConstructor;
+import project.lolmonitor.service.riot.ChampionService;
 import project.lolmonitor.service.riot.RiotService;
 
 @RestController
@@ -16,6 +21,7 @@ import project.lolmonitor.service.riot.RiotService;
 public class RiotController {
 
 	private final RiotService riotService;
+	private final ChampionService championService;
 
 	/**
 	 * 라이엇 유저 DB에 추가 및 현재 게임 중 상태 확인
@@ -48,5 +54,27 @@ public class RiotController {
 
 		riotService.disableRiotUserMonitoring(gameNickname, tagLine);
 		return ResponseEntity.ok().build();
+	}
+
+	/**
+	 * 챔피언 데이터 동기화 실행
+	 */
+	@PostMapping("/sync")
+	public ResponseEntity<Map<String, Object>> syncChampions() {
+		try {
+			championService.syncChampionsFromApi();
+
+			Map<String, Object> result = new HashMap<>();
+			result.put("success", true);
+			result.put("message", "챔피언 데이터 동기화 완료");result.put("timestamp", LocalDateTime.now());
+
+			return ResponseEntity.ok(result);
+		} catch (Exception e) {
+			Map<String, Object> error = new HashMap<>();
+			error.put("success", false);
+			error.put("message", "동기화 실패: " + e.getMessage());
+
+			return ResponseEntity.status(500).body(error);
+		}
 	}
 }
