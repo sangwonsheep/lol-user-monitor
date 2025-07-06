@@ -7,9 +7,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpRequest;
-import org.springframework.http.MediaType;
 import org.springframework.http.client.ClientHttpRequestExecution;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpResponse;
@@ -20,6 +18,7 @@ import org.springframework.web.service.invoker.HttpServiceProxyFactory;
 
 import lombok.extern.slf4j.Slf4j;
 import project.lolmonitor.client.riot.api.RiotAccountApi;
+import project.lolmonitor.client.riot.api.RiotChampionApi;
 import project.lolmonitor.client.riot.api.RiotSpectatorApi;
 
 @Slf4j
@@ -53,6 +52,15 @@ public class RiotApiConfig {
 	}
 
 	@Bean
+	public RestClient riotChampionRestClient() {
+		return RestClient.builder()
+			.baseUrl("https://ddragon.leagueoflegends.com")
+			.requestFactory(riotClientHttpRequestFactory())
+			.requestInterceptor(this::logRequest)
+			.build();
+	}
+
+	@Bean
 	public RiotAccountApi riotAccountApi(@Qualifier("riotAccountRestClient") RestClient riotAccountRestClient) {
 		var adapter = RestClientAdapter.create(riotAccountRestClient);
 		var proxy = HttpServiceProxyFactory.builderFor(adapter).build();
@@ -64,6 +72,13 @@ public class RiotApiConfig {
 		var adapter = RestClientAdapter.create(riotSpectatorRestClient);
 		var proxy = HttpServiceProxyFactory.builderFor(adapter).build();
 		return proxy.createClient(RiotSpectatorApi.class);
+	}
+
+	@Bean
+	public RiotChampionApi riotChampionApi(@Qualifier("riotChampionRestClient") RestClient riotChampionRestClient) {
+		var adapter = RestClientAdapter.create(riotChampionRestClient);
+		var proxy = HttpServiceProxyFactory.builderFor(adapter).build();
+		return proxy.createClient(RiotChampionApi.class);
 	}
 
 	@Bean
