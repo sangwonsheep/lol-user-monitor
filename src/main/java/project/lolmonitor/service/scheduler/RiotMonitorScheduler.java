@@ -1,7 +1,6 @@
 package project.lolmonitor.service.scheduler;
 
 import java.util.List;
-import java.util.Map;
 
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -23,7 +22,7 @@ public class RiotMonitorScheduler {
 	/**
 	 * 주기적으로 모니터링 대상 플레이어 게임 상태 확인
 	 */
-	@Scheduled(fixedDelayString = "60000")
+	@Scheduled(fixedDelayString = "30000")
 	public void checkAllPlayers() {
 		List<RiotUser> riotUsers = riotUserDataHandler.getMonitorRiotUsers();
 
