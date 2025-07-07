@@ -1,5 +1,6 @@
 package project.lolmonitor.service.notification;
 
+import java.time.format.DateTimeFormatter;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -25,6 +26,8 @@ public class NotificationService {
 	@Value("${notification.retry.max-attempts:3}")
 	private int maxRetryAttempts;
 
+	private static final DateTimeFormatter SIMPLE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+
 	public void sendGameStartNotification(String playerName, GameSession gameSession) {
 		String message = createGameStartMessage(playerName, gameSession);
 		sendDiscordNotification(message);
@@ -37,18 +40,18 @@ public class NotificationService {
             🎮 **%s**님이 게임을 시작했습니다!
             
             📍 **게임 정보**
+            • 시작 시간 : %s
+            • 챔피언 : 🔥 **%s** 🔥
             • 게임 모드 : %s
-            • 챔피언 : %s
             • 팀 : %s
-            • 경과 시간 : %d분
             
             🔗 [OP.GG에서 보기](https://op.gg/summoners/kr/%s)
             """,
 			playerName,
-			getGameModeKorean(gameSession.getGameMode()),
+			gameSession.getStartTime().format(SIMPLE_FORMATTER),
 			getChampionName(String.valueOf(gameSession.getChampionId())),
-			gameSession.getTeamId() == 100L ? "🔵 블루" : "🔴 레드",
-			gameSession.getGameLength() > 0 ? gameSession.getGameLength() / 60 : 0,
+			getGameModeKorean(gameSession.getGameMode()),
+			gameSession.getTeamId() == 100L ? "블루" : "레드",
 			playerName.replace("#", "-")
 		);
 	}
