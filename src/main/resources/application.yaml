@@ -1,4 +1,29 @@
 # -----------------------------
+#       COMMON SETTINGS
+# -----------------------------
+spring:
+  jpa:
+    open-in-view: false
+  task:
+    scheduling:
+      enabled: true
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+decorator:
+  datasource:
+    p6spy:
+      enable-logging: true
+
+# riot api key
+riot:
+  api:
+    key: ${RIOT_API_KEY}
+
+discord:
+  url: ${DISCORD_WEBHOOK_URL}
+---
+# -----------------------------
 #       LOCAL SETTINGS
 # -----------------------------
 spring:
@@ -14,19 +39,20 @@ spring:
     url: ${DOCKER_MYSQL_URL}
     username: ${DOCKER_MYSQL_USERNAME}
     password: ${DOCKER_MYSQL_PASSWORD}
-    driver-class-name: com.mysql.cj.jdbc.Driver
-  task:
-    scheduling:
-      enabled: true # ???? ???
-decorator:
+---
+# -----------------------------
+#       PROD SETTINGS
+# -----------------------------
+spring:
+  config:
+    activate:
+      on-profile: prod
+  application:
+    name: lol.prod.server.api
+  jpa:
+    hibernate:
+      ddl-auto: validate
   datasource:
-    p6spy:
-      enable-logging: true
-
-# ??? api key
-riot:
-  api:
-    key: ${RIOT_API_KEY}
-
-discord:
-  url: ${DISCORD_WEBHOOK_URL}
+    url: ${PROD_DOCKER_MYSQL_URL}
+    username: ${PROD_DOCKER_MYSQL_USERNAME}
+    password: ${PROD_DOCKER_MYSQL_PASSWORD}
