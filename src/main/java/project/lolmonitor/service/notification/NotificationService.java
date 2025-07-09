@@ -28,30 +28,31 @@ public class NotificationService {
 
 	private static final DateTimeFormatter SIMPLE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
-	public void sendGameStartNotification(String playerName, GameSession gameSession) {
-		String message = createGameStartMessage(playerName, gameSession);
+	public void sendGameStartNotification(String playerName, GameSession gameSession, int gameCount) {
+		String message = createGameStartMessage(playerName, gameSession, gameCount);
 		sendDiscordNotification(message);
 	}
 
-	private String createGameStartMessage(String playerName, GameSession gameSession) {
+	private String createGameStartMessage(String playerName, GameSession gameSession, int gameCount) {
 		return String.format("""
-            🚨 **비상**
-            
-            🎮 **%s** 🎮 게임 시작!
-            
-            📍 **게임 정보**
-            • 시작 시간 : %s
-            • 챔피언 : 🔥 **%s** 🔥
-            • 게임 모드 : %s
-            • 팀 : %s
-            
-            🔗 [OP.GG에서 보기](https://op.gg/summoners/kr/%s)
-            """,
+				 🚨🚨🚨 **게임 시작** 🚨🚨🚨
+				
+				 📍 **유저 정보**
+				 	•	소환사 명 : **%s**
+				 	•	누적 판 수 : %d
+				
+				 📍 **게임 정보**
+				 	•	시작 시간 : %s
+				 	•	챔피언 : 🔥 **%s** 🔥
+				 	•	게임 모드 : %s
+				
+				 🔗 [OP.GG에서 보기](https://op.gg/summoners/kr/%s)
+				""",
 			playerName,
+			gameCount,
 			gameSession.getStartTime().format(SIMPLE_FORMATTER),
 			getChampionName(String.valueOf(gameSession.getChampionId())),
 			getGameModeKorean(gameSession.getGameMode()),
-			gameSession.getTeamId() == 100L ? "블루" : "레드",
 			playerName.replace("#", "-")
 		);
 	}
@@ -66,7 +67,8 @@ public class NotificationService {
 	}
 
 	private String getGameModeKorean(String gameMode) {
-		if (gameMode == null) return "알 수 없는 모드";
+		if (gameMode == null)
+			return "알 수 없는 모드";
 
 		return switch (gameMode) {
 			case "CLASSIC" -> "소환사의 협곡";
