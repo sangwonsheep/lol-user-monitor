@@ -37,7 +37,7 @@ public class NotificationService {
 		return String.format("""
             🚨 **비상**
             
-            🎮 **%s** 게임 시작!
+            🎮 **%s** 🎮 게임 시작!
             
             📍 **게임 정보**
             • 시작 시간 : %s
