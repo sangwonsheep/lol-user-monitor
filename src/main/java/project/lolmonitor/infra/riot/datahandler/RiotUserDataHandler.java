@@ -18,10 +18,9 @@ public class RiotUserDataHandler {
 	private final RiotUserRepository riotUserRepository;
 
 	@Transactional(readOnly = true)
-	public String getPuuid(String gameNickname, String tagLine) {
-		RiotUser riotUser = riotUserRepository.findByGameNicknameAndTagLine(gameNickname, tagLine)
+	public RiotUser getRiotUser(String gameNickname, String tagLine) {
+		return riotUserRepository.findByGameNicknameAndTagLine(gameNickname, tagLine)
 											  .orElseThrow(() -> new RuntimeException("존재하지 않는 사용자입니다."));
-		return riotUser.getPuuid();
 	}
 
 	@Transactional(readOnly = true)
