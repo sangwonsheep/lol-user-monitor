@@ -13,6 +13,7 @@ import project.lolmonitor.client.riot.dto.CurrentGameParticipant;
 import project.lolmonitor.infra.riot.datahandler.GameSessionDataHandler;
 import project.lolmonitor.infra.riot.datahandler.RiotUserDataHandler;
 import project.lolmonitor.infra.riot.entity.GameSession;
+import project.lolmonitor.infra.riot.entity.RiotUser;
 import project.lolmonitor.service.notification.NotificationService;
 
 @Slf4j
@@ -31,11 +32,11 @@ public class RiotService {
 		log.info("🔍 {}의 게임 상태 확인 중...", playerDisplayName);
 
 		try {
-			// 1. PUUID 획득
-			String puuid = getPuuid(gameNickName, tagLine);
+			// 1. RiotUser 획득
+			RiotUser riotUser = getRiotUser(gameNickName, tagLine);
 
 			// 2. 현재 게임 상태 확인
-			checkCurrentGameStatus(playerDisplayName, puuid);
+			checkCurrentGameStatus(playerDisplayName, riotUser);
 		} catch (Exception e) {
 			log.error("❌ {} 상태 확인 중 오류 발생: {}", playerDisplayName, e.getMessage());
 		}
@@ -49,36 +50,37 @@ public class RiotService {
 		riotUserDataHandler.disableRiotUserMonitoring(gameNickName, tagLine);
 	}
 
-	private String getPuuid(String gameNickName, String tagLine) {
+	private RiotUser getRiotUser(String gameNickName, String tagLine) {
 		String cacheKey = gameNickName + "#" + tagLine;
 		boolean existsRiotUser = riotUserDataHandler.existsRiotUser(gameNickName, tagLine);
 
 		if (existsRiotUser) {
-			return riotUserDataHandler.getPuuid(gameNickName, tagLine);
+			return riotUserDataHandler.getRiotUser(gameNickName, tagLine);
 		}
 
 		try {
 			// 유저 정보 조회 API 호출
 			log.info("🌐 Account API 호출: {}", cacheKey);
 			Account account = riotAccountApi.getAccountByRiotId(gameNickName, tagLine);
-			String puuid = account.puuid();
-
-			riotUserDataHandler.createRiotUser(gameNickName, tagLine, puuid);
-			return puuid;
+			return riotUserDataHandler.createRiotUser(gameNickName, tagLine, account.puuid());
 		} catch (Exception e) {
 			log.error("❌ Account API 호출 실패: {}#{} - {}", gameNickName, tagLine, e.getMessage());
 			throw e;
 		}
 	}
 
+	private int getGameCount(Long riotUserId) {
+		return gameSessionDataHandler.countGameSessionsByRiotUser(riotUserId);
+	}
+
 	// 현재 게임 상태 확인
-	private void checkCurrentGameStatus(String playerDisplayName, String puuid) {
+	private void checkCurrentGameStatus(String playerDisplayName, RiotUser riotUser) {
 		try {
 			// 게임 중 상태 확인 API 호출 (200: 게임 중, 404: 게임 중이 아님)
-			CurrentGameInfo currentGame = riotSpectatorApi.getCurrentGameBySummoner(puuid);
+			CurrentGameInfo currentGame = riotSpectatorApi.getCurrentGameBySummoner(riotUser.getPuuid());
 
 			log.info("🎮 {} 현재 게임 중! 게임ID: {}", playerDisplayName, currentGame.gameId());
-			handleGameInProgress(playerDisplayName, currentGame, puuid);
+			handleGameInProgress(playerDisplayName, currentGame, riotUser);
 		} catch (HttpClientErrorException.NotFound e) {
 			log.info("💤 {} 현재 게임 중이 아님", playerDisplayName);
 		} catch (HttpClientErrorException.TooManyRequests e) {
@@ -91,7 +93,7 @@ public class RiotService {
 	}
 
 	// 게임 중인지 확인
-	private void handleGameInProgress(String playerDisplayName, CurrentGameInfo currentGame, String puuid) {
+	private void handleGameInProgress(String playerDisplayName, CurrentGameInfo currentGame, RiotUser riotUser) {
 		boolean gameProgressStatus = gameSessionDataHandler.existsGameSession(currentGame.gameId());
 
 		// 이미 존재하는 게임
@@ -102,13 +104,16 @@ public class RiotService {
 
 		// 새로운 게임 시작
 		try {
-			CurrentGameParticipant player = findPlayerInGame(currentGame, puuid);
+			CurrentGameParticipant player = findPlayerInGame(currentGame, riotUser.getPuuid());
 
 			// DB에 게임 세션 저장
-			GameSession gameSession = gameSessionDataHandler.startGameSession(currentGame, player, puuid);
+			GameSession gameSession = gameSessionDataHandler.startGameSession(currentGame, player, riotUser.getPuuid());
+
+			// 유저 누적 게임 수
+			int gameCount = getGameCount(riotUser.getId());
 
 			// 알림 전송
-			notificationService.sendGameStartNotification(playerDisplayName, gameSession);
+			notificationService.sendGameStartNotification(playerDisplayName, gameSession, gameCount);
 
 			log.info("🎯 새 게임 시작 - DB저장 & 알림전송: {} (게임ID: {}, 모드: {})",
 				playerDisplayName, currentGame.gameId(), gameSession.getGameMode());

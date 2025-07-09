@@ -14,5 +14,7 @@ public interface GameSessionRepository extends JpaRepository<GameSession, Long> 
 	Optional<GameSession> findByRiotUserAndGameIdAndGameStatus(
 		RiotUser riotUser, Long gameId, GameStatus gameStatus);
 
+	int countByRiotUserId(Long riotUserId);
+
 	boolean existsByGameId(Long gameId);
 }

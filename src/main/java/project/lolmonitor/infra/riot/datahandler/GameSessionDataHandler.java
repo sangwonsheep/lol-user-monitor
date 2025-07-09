@@ -28,6 +28,11 @@ public class GameSessionDataHandler {
 		return gameSessionRepository.existsByGameId(gameId);
 	}
 
+	@Transactional(readOnly = true)
+	public int countGameSessionsByRiotUser(Long riotUserId) {
+		return gameSessionRepository.countByRiotUserId(riotUserId);
+	}
+
 	@Transactional
 	public GameSession startGameSession(CurrentGameInfo gameInfo, CurrentGameParticipant participant, String puuid) {
 		RiotUser riotUser = riotUserRepository.findByPuuid(puuid)
