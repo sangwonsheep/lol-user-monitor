@@ -9,10 +9,10 @@ import project.lolmonitor.client.riot.dto.ChampionData;
 
 /**
  * https://ddragon.leagueoflegends.com
- * Data Dragon APi 호출
- * 리그오브레전드 챔피언 정보 가져오기
+ * Data Dragon API 호출
+ * 리그 오브 레전드 챔피언 정보 가져오기
  */
-public interface RiotChampionApi {
+public interface RiotDataDragonApi {
 
 	/**
 	 * 최신 버전 목록 조회

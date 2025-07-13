@@ -17,9 +17,9 @@ import org.springframework.web.client.support.RestClientAdapter;
 import org.springframework.web.service.invoker.HttpServiceProxyFactory;
 
 import lombok.extern.slf4j.Slf4j;
-import project.lolmonitor.client.riot.api.RiotAccountApi;
-import project.lolmonitor.client.riot.api.RiotChampionApi;
-import project.lolmonitor.client.riot.api.RiotSpectatorApi;
+import project.lolmonitor.client.riot.api.RiotAsiaApi;
+import project.lolmonitor.client.riot.api.RiotDataDragonApi;
+import project.lolmonitor.client.riot.api.RiotKoreaApi;
 
 @Slf4j
 @Configuration
@@ -32,7 +32,7 @@ public class RiotApiConfig {
 	private static final Duration READ_TIMEOUT = Duration.ofSeconds(10);
 
 	@Bean
-	public RestClient riotAccountRestClient() {
+	public RestClient riotAsiaRestClient() {
 		return RestClient.builder()
 			.baseUrl("https://asia.api.riotgames.com")
 			.defaultHeader("X-Riot-Token", riotApiKey)
@@ -42,7 +42,7 @@ public class RiotApiConfig {
 	}
 
 	@Bean
-	public RestClient riotSpectatorRestClient() {
+	public RestClient riotKoreaRestClient() {
 		return RestClient.builder()
 			.baseUrl("https://kr.api.riotgames.com")
 			.defaultHeader("X-Riot-Token", riotApiKey)
@@ -52,7 +52,7 @@ public class RiotApiConfig {
 	}
 
 	@Bean
-	public RestClient riotChampionRestClient() {
+	public RestClient riotDataDragonRestClient() {
 		return RestClient.builder()
 			.baseUrl("https://ddragon.leagueoflegends.com")
 			.requestFactory(riotClientHttpRequestFactory())
@@ -61,24 +61,24 @@ public class RiotApiConfig {
 	}
 
 	@Bean
-	public RiotAccountApi riotAccountApi(@Qualifier("riotAccountRestClient") RestClient riotAccountRestClient) {
-		var adapter = RestClientAdapter.create(riotAccountRestClient);
+	public RiotAsiaApi riotAsiaApi(@Qualifier("riotAsiaRestClient") RestClient riotAsiaRestClient) {
+		var adapter = RestClientAdapter.create(riotAsiaRestClient);
 		var proxy = HttpServiceProxyFactory.builderFor(adapter).build();
-		return proxy.createClient(RiotAccountApi.class);
+		return proxy.createClient(RiotAsiaApi.class);
 	}
 
 	@Bean
-	public RiotSpectatorApi riotSpectatorApi(@Qualifier("riotSpectatorRestClient") RestClient riotSpectatorRestClient) {
-		var adapter = RestClientAdapter.create(riotSpectatorRestClient);
+	public RiotKoreaApi riotKoreaApi(@Qualifier("riotKoreaRestClient") RestClient riotKoreaRestClient) {
+		var adapter = RestClientAdapter.create(riotKoreaRestClient);
 		var proxy = HttpServiceProxyFactory.builderFor(adapter).build();
-		return proxy.createClient(RiotSpectatorApi.class);
+		return proxy.createClient(RiotKoreaApi.class);
 	}
 
 	@Bean
-	public RiotChampionApi riotChampionApi(@Qualifier("riotChampionRestClient") RestClient riotChampionRestClient) {
-		var adapter = RestClientAdapter.create(riotChampionRestClient);
+	public RiotDataDragonApi riotChampionApi(@Qualifier("riotDataDragonRestClient") RestClient riotDataDragonRestClient) {
+		var adapter = RestClientAdapter.create(riotDataDragonRestClient);
 		var proxy = HttpServiceProxyFactory.builderFor(adapter).build();
-		return proxy.createClient(RiotChampionApi.class);
+		return proxy.createClient(RiotDataDragonApi.class);
 	}
 
 	@Bean
