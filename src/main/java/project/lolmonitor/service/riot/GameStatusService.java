@@ -5,8 +5,8 @@ import org.springframework.web.client.HttpClientErrorException;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import project.lolmonitor.client.riot.api.RiotAccountApi;
-import project.lolmonitor.client.riot.api.RiotSpectatorApi;
+import project.lolmonitor.client.riot.api.RiotAsiaApi;
+import project.lolmonitor.client.riot.api.RiotKoreaApi;
 import project.lolmonitor.client.riot.dto.Account;
 import project.lolmonitor.client.riot.dto.CurrentGameInfo;
 import project.lolmonitor.client.riot.dto.CurrentGameParticipant;
@@ -16,17 +16,21 @@ import project.lolmonitor.infra.riot.entity.GameSession;
 import project.lolmonitor.infra.riot.entity.RiotUser;
 import project.lolmonitor.service.notification.NotificationService;
 
+/**
+ * 게임 상태 확인하는 서비스
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class RiotService {
+public class GameStatusService {
 
-	private final RiotAccountApi riotAccountApi;
-	private final RiotSpectatorApi riotSpectatorApi;
+	private final RiotAsiaApi riotAccountApi;
+	private final RiotKoreaApi riotKoreaApi;
 	private final NotificationService notificationService;
 	private final RiotUserDataHandler riotUserDataHandler;
 	private final GameSessionDataHandler gameSessionDataHandler;
 
+	// 게임 상태 확인
 	public void checkGameStatus(String gameNickName, String tagLine) {
 		String playerDisplayName = gameNickName + "#" + tagLine;
 		log.info("🔍 {}의 게임 상태 확인 중...", playerDisplayName);
@@ -42,14 +46,7 @@ public class RiotService {
 		}
 	}
 
-	public void enableRiotUserMonitoring(String gameNickName, String tagLine) {
-		riotUserDataHandler.enableRiotUserMonitoring(gameNickName, tagLine);
-	}
-
-	public void disableRiotUserMonitoring(String gameNickName, String tagLine) {
-		riotUserDataHandler.disableRiotUserMonitoring(gameNickName, tagLine);
-	}
-
+	// Riot User 획득
 	private RiotUser getRiotUser(String gameNickName, String tagLine) {
 		String cacheKey = gameNickName + "#" + tagLine;
 		boolean existsRiotUser = riotUserDataHandler.existsRiotUser(gameNickName, tagLine);
@@ -69,6 +66,7 @@ public class RiotService {
 		}
 	}
 
+	// 게임 판 수 획득
 	private int getGameCount(Long riotUserId) {
 		return gameSessionDataHandler.countGameSessionsByRiotUser(riotUserId);
 	}
@@ -77,18 +75,19 @@ public class RiotService {
 	private void checkCurrentGameStatus(String playerDisplayName, RiotUser riotUser) {
 		try {
 			// 게임 중 상태 확인 API 호출 (200: 게임 중, 404: 게임 중이 아님)
-			CurrentGameInfo currentGame = riotSpectatorApi.getCurrentGameBySummoner(riotUser.getPuuid());
+			CurrentGameInfo currentGame = riotKoreaApi.getCurrentGameBySummoner(riotUser.getPuuid());
 
 			log.info("🎮 {} 현재 게임 중! 게임ID: {}", playerDisplayName, currentGame.gameId());
 			handleGameInProgress(playerDisplayName, currentGame, riotUser);
-		} catch (HttpClientErrorException.NotFound e) {
+		} catch (HttpClientErrorException.NotFound e) { // 404
 			log.info("💤 {} 현재 게임 중이 아님", playerDisplayName);
+			handleGameEnd(riotUser);
 		} catch (HttpClientErrorException.TooManyRequests e) {
 			log.warn("⚠️ API 호출 제한 도달. 잠시 후 다시 시도합니다.");
 		} catch (HttpClientErrorException.Forbidden e) {
 			log.error("🚫 API 권한 오류: {}", e.getMessage());
 		} catch (Exception e) {
-			log.error("💥 Spectator API 호출 실패: {}", e.getMessage());
+			log.error("💥 API 호출 실패: {}", e.getMessage());
 		}
 	}
 
@@ -120,6 +119,15 @@ public class RiotService {
 
 		} catch (Exception e) {
 			log.error("❌ 게임 세션 처리 실패: {} - {}", playerDisplayName, e.getMessage());
+		}
+	}
+
+	// 게임 종료
+	private void handleGameEnd(RiotUser riotUser) {
+		try {
+			gameSessionDataHandler.endGameSession(riotUser.getPuuid());
+		} catch (Exception e) {
+			log.error("❌ {} 게임 종료 처리 실패: {}", riotUser.getDisplayName(), e.getMessage());
 		}
 	}
 

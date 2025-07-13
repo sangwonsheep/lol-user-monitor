@@ -12,23 +12,38 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import lombok.RequiredArgsConstructor;
+import project.lolmonitor.infra.riot.entity.RiotUser;
 import project.lolmonitor.service.riot.ChampionService;
-import project.lolmonitor.service.riot.RiotService;
+import project.lolmonitor.service.riot.GameStatusService;
+import project.lolmonitor.service.riot.RiotUserService;
+import project.lolmonitor.service.riot.SummonerLevelService;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/riot")
 public class RiotController {
 
-	private final RiotService riotService;
+	private final RiotUserService riotUserService;
+	private final GameStatusService gameStatusService;
 	private final ChampionService championService;
+	private final SummonerLevelService summonerLevelService;
 
 	/**
 	 * 라이엇 유저 DB에 추가 및 현재 게임 중 상태 확인
 	 */
 	@GetMapping
 	public ResponseEntity<String> checkGameStatus(@RequestParam String gameNickname, @RequestParam String tagLine) {
-		riotService.checkGameStatus(gameNickname, tagLine);
+		gameStatusService.checkGameStatus(gameNickname, tagLine);
+		return ResponseEntity.ok("✅ " + gameNickname + "#" + tagLine + " 상태 확인 완료");
+	}
+
+	/**
+	 * 레벨 업 확인
+	 */
+	@GetMapping("/level-up")
+	public ResponseEntity<String> checkLevelUp(@RequestParam String gameNickname, @RequestParam String tagLine) {
+		RiotUser riotUser = riotUserService.getRiotUser(gameNickname, tagLine);
+		summonerLevelService.checkSummonerLevel(riotUser);
 		return ResponseEntity.ok("✅ " + gameNickname + "#" + tagLine + " 상태 확인 완료");
 	}
 
@@ -40,7 +55,7 @@ public class RiotController {
 		@RequestParam String gameNickname,
 		@RequestParam String tagLine) {
 
-		riotService.enableRiotUserMonitoring(gameNickname, tagLine);
+		riotUserService.enableRiotUserMonitoring(gameNickname, tagLine);
 		return ResponseEntity.ok().build();
 	}
 
@@ -52,7 +67,7 @@ public class RiotController {
 		@RequestParam String gameNickname,
 		@RequestParam String tagLine) {
 
-		riotService.disableRiotUserMonitoring(gameNickname, tagLine);
+		riotUserService.disableRiotUserMonitoring(gameNickname, tagLine);
 		return ResponseEntity.ok().build();
 	}
 

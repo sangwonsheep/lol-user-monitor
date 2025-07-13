@@ -1,4 +1,4 @@
-package project.lolmonitor.infra.riot.entity;
+package project.lolmonitor.common.enums;
 
 public enum GameStatus {
 	IN_PROGRESS,    // 진행 중

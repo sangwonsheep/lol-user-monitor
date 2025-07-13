@@ -1,18 +1,19 @@
 package project.lolmonitor.infra.riot.repository;
 
-import java.util.List;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import project.lolmonitor.infra.riot.entity.GameSession;
-import project.lolmonitor.infra.riot.entity.GameStatus;
-import project.lolmonitor.infra.riot.entity.RiotUser;
+import project.lolmonitor.common.enums.GameStatus;
 
 public interface GameSessionRepository extends JpaRepository<GameSession, Long> {
 
-	Optional<GameSession> findByRiotUserAndGameIdAndGameStatus(
-		RiotUser riotUser, Long gameId, GameStatus gameStatus);
+	Optional<GameSession> findByRiotUserPuuidAndGameStatus(
+		String puuid, GameStatus gameStatus);
+
+	int countByRiotUserIdAndGameStatusAndEndTimeAfter(Long riotUserId, GameStatus gameStatus, LocalDateTime since);
 
 	int countByRiotUserId(Long riotUserId);
 

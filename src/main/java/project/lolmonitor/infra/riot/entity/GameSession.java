@@ -1,7 +1,6 @@
 package project.lolmonitor.infra.riot.entity;
 
 import java.time.Duration;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
@@ -19,6 +18,7 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import project.lolmonitor.common.enums.GameStatus;
 import project.lolmonitor.infra.common.BaseEntity;
 
 @Table(name =  "game_session")
@@ -95,20 +95,15 @@ public class GameSession extends BaseEntity {
 			.build();
 	}
 
-	public long getDurationMinutes() {
-		LocalDateTime endTime = this.endTime != null ? this.endTime : LocalDateTime.now();
-		return Duration.between(startTime, endTime).toMinutes();
-	}
-
-	public boolean isStale() {
-		return getDurationMinutes() > 120; // 2시간 이상은 비정상
-	}
-
-	public LocalDate getGameDate() {
-		return startTime.toLocalDate();
-	}
-
-	public void updateEndTime(LocalDateTime endTime) {
+	public void endGame(LocalDateTime endTime) {
 		this.endTime = endTime;
+		this.gameStatus = GameStatus.COMPLETED;
+	}
+
+	public Duration getGameDuration() {
+		if (endTime == null) {
+			return Duration.between(startTime, LocalDateTime.now());
+		}
+		return Duration.between(startTime, endTime);
 	}
 }
