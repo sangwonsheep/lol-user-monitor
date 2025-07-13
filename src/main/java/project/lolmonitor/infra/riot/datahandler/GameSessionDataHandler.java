@@ -11,7 +11,7 @@ import lombok.RequiredArgsConstructor;
 import project.lolmonitor.client.riot.dto.CurrentGameInfo;
 import project.lolmonitor.client.riot.dto.CurrentGameParticipant;
 import project.lolmonitor.infra.riot.entity.GameSession;
-import project.lolmonitor.infra.riot.entity.GameStatus;
+import project.lolmonitor.common.enums.GameStatus;
 import project.lolmonitor.infra.riot.entity.RiotUser;
 import project.lolmonitor.infra.riot.repository.GameSessionRepository;
 import project.lolmonitor.infra.riot.repository.RiotUserRepository;
@@ -24,6 +24,12 @@ public class GameSessionDataHandler {
 	private final RiotUserRepository riotUserRepository;
 
 	@Transactional(readOnly = true)
+	public GameSession getActiveGameSession(String puuid) {
+		return gameSessionRepository.findByRiotUserPuuidAndGameStatus(puuid, GameStatus.IN_PROGRESS)
+									.orElseThrow(() -> new RuntimeException("존재하지 않는 사용자이거나 유효하지 않은 puuid : " + puuid));
+	}
+
+	@Transactional(readOnly = true)
 	public boolean existsGameSession(Long gameId) {
 		return gameSessionRepository.existsByGameId(gameId);
 	}
@@ -31,6 +37,12 @@ public class GameSessionDataHandler {
 	@Transactional(readOnly = true)
 	public int countGameSessionsByRiotUser(Long riotUserId) {
 		return gameSessionRepository.countByRiotUserId(riotUserId);
+	}
+
+	@Transactional(readOnly = true)
+	public int countCompletedGamesSince(Long riotUserId, LocalDateTime since) {
+		return gameSessionRepository.countByRiotUserIdAndGameStatusAndEndTimeAfter(
+			riotUserId, GameStatus.COMPLETED, since);
 	}
 
 	@Transactional
@@ -47,5 +59,12 @@ public class GameSessionDataHandler {
 			gameInfo.gameMode(), gameInfo.gameLength(), GameStatus.IN_PROGRESS, gameInfo.mapId(), participant.championId(), participant.teamId(),
 			gameStartTime);
 		return gameSessionRepository.save(gameSession);
+	}
+
+	@Transactional
+	public void endGameSession(String puuid) {
+		GameSession gameSession = getActiveGameSession(puuid);
+		gameSession.endGame(LocalDateTime.now());
+		gameSessionRepository.save(gameSession);
 	}
 }
