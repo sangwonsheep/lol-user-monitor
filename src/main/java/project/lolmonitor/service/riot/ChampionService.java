@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import project.lolmonitor.client.riot.api.RiotChampionApi;
+import project.lolmonitor.client.riot.api.RiotDataDragonApi;
 import project.lolmonitor.client.riot.dto.ChampionBasicInfo;
 import project.lolmonitor.client.riot.dto.ChampionData;
 import project.lolmonitor.infra.riot.datahandler.ChampionDataHandler;
@@ -17,7 +17,7 @@ import project.lolmonitor.infra.riot.datahandler.ChampionDataHandler;
 @RequiredArgsConstructor
 public class ChampionService {
 
-	private final RiotChampionApi riotChampionApi;
+	private final RiotDataDragonApi riotDataDragonApi;
 	private final ChampionDataHandler championDataHandler;
 
 	public void syncChampionsFromApi() {
@@ -25,12 +25,12 @@ public class ChampionService {
 
 		try {
 			// 1단계: 최신 버전 조회
-			List<String> versions = riotChampionApi.getVersions();
+			List<String> versions = riotDataDragonApi.getVersions();
 			String latestVersion = versions.getFirst();
 			log.info("📦 최신 버전: {}", latestVersion);
 
 			// 2단계: 챔피언 전체 데이터 조회
-			ChampionData response = riotChampionApi.getChampionData(latestVersion);
+			ChampionData response = riotDataDragonApi.getChampionData(latestVersion);
 			Map<String, ChampionBasicInfo> championMap = response.data();
 			log.info("📊 조회된 챔피언 수: {}", championMap.size());
 
