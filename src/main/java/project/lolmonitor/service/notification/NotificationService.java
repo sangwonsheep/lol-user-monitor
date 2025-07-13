@@ -1,5 +1,8 @@
 package project.lolmonitor.service.notification;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.Duration;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
 
@@ -9,8 +12,10 @@ import org.springframework.web.client.RestClient;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import project.lolmonitor.common.enums.GameMode;
 import project.lolmonitor.infra.riot.datahandler.ChampionDataHandler;
 import project.lolmonitor.infra.riot.entity.GameSession;
+import project.lolmonitor.infra.riot.entity.SummonerLevelHistory;
 
 @Slf4j
 @Service
@@ -33,6 +38,11 @@ public class NotificationService {
 		sendDiscordNotification(message);
 	}
 
+	public void sendLevelUpNotification(String playerName, int previousLevel, SummonerLevelHistory levelHistory) {
+		String message = createLevelUpMessage(playerName, previousLevel, levelHistory);
+		sendDiscordNotification(message);
+	}
+
 	private String createGameStartMessage(String playerName, GameSession gameSession, int gameCount) {
 		return String.format("""
 				 🚨🚨🚨 **게임 시작** 🚨🚨🚨
@@ -52,10 +62,36 @@ public class NotificationService {
 			gameCount,
 			gameSession.getStartTime().format(SIMPLE_FORMATTER),
 			getChampionName(String.valueOf(gameSession.getChampionId())),
-			getGameModeKorean(gameSession.getGameMode()),
+			GameMode.getKoreanName(gameSession.getGameMode()),
 			playerName.replace("#", "-")
 		);
 	}
+
+	private String createLevelUpMessage(String playerName, int previousLevel, SummonerLevelHistory levelHistory) {
+		return String.format("""
+            🎉🎉🎉 **레벨업 축하!** 🎉🎉🎉
+            
+            📍 **소환사 정보**
+              •  소환사 명 : **%s**
+              •  레벨 : %d → **%d**
+            
+            📍 **레벨업 통계**
+              •  레벨업 시간 : %s
+              •  소요 시간 : **%s**
+              •  플레이 판 수 : **%d 판**
+            
+            🔗 [OP.GG에서 보기](https://op.gg/summoners/kr/%s)
+            """,
+			playerName,
+			previousLevel,
+			levelHistory.getLevel(),
+			levelHistory.getLevelUpTime().format(SIMPLE_FORMATTER),
+			formatDuration(levelHistory.getTimeTakenHours()),
+			levelHistory.getGamesPlayedForLevelup(),
+			playerName.replace("#", "-")
+		);
+	}
+
 
 	private String getChampionName(String championKey) {
 		String championName = championDataHandler.getChampionName(championKey);
@@ -66,19 +102,27 @@ public class NotificationService {
 		return championName;
 	}
 
-	private String getGameModeKorean(String gameMode) {
-		if (gameMode == null)
-			return "알 수 없는 모드";
+	private String formatDuration(BigDecimal hours) {
+		if (hours == null || hours.compareTo(BigDecimal.ZERO) <= 0) {
+			return "0분";
+		}
 
-		return switch (gameMode) {
-			case "CLASSIC" -> "소환사의 협곡";
-			case "ARAM" -> "무작위 총력전";
-			case "URF" -> "우르프";
-			case "ONEFORALL" -> "원 포 올";
-			case "NEXUSBLITZ" -> "넥서스 블리츠";
-			case "CHERRY" -> "아레나";
-			default -> gameMode;
-		};
+		// 분 단위로 변환 (반올림 적용)
+		BigDecimal totalMinutesBD = hours.multiply(BigDecimal.valueOf(60));
+		int totalMinutes = totalMinutesBD.setScale(0, RoundingMode.HALF_UP).intValue();
+
+		// 시간과 분으로 분리
+		int hoursPart = totalMinutes / 60;
+		int minutesPart = totalMinutes % 60;
+
+		// 포맷팅
+		if (hoursPart > 0 && minutesPart > 0) {
+			return String.format("%d시간 %d분", hoursPart, minutesPart);
+		} else if (hoursPart > 0) {
+			return String.format("%d시간", hoursPart);
+		} else {
+			return String.format("%d분", minutesPart);
+		}
 	}
 
 	private void sendDiscordNotification(String message) {
