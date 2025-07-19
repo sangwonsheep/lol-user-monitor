@@ -11,6 +11,7 @@ import project.lolmonitor.infra.riot.datahandler.RiotUserDataHandler;
 import project.lolmonitor.infra.riot.entity.RiotUser;
 import project.lolmonitor.service.riot.GameStatusService;
 import project.lolmonitor.service.riot.SummonerLevelService;
+import project.lolmonitor.service.statistics.StatisticsService;
 
 @Slf4j
 @Component
@@ -19,6 +20,7 @@ public class RiotMonitorScheduler {
 
 	private final GameStatusService gameStatusService;
 	private final SummonerLevelService summonerLevelService;
+	private final StatisticsService statisticsService;
 	private final RiotUserDataHandler riotUserDataHandler;
 
 	/**
@@ -73,5 +75,14 @@ public class RiotMonitorScheduler {
 				log.error("❌ {} 레벨 모니터링 실패: {}", user.getDisplayName(), e.getMessage());
 			}
 		}
+	}
+
+	/**
+	 * 매일 18시에 일일 게임 통계 전송
+	 */
+	@Scheduled(cron = "0 0 18 * * *") // 매일 18:00:00
+	public void sendDailyStatistics() {
+		log.info("📊 일일 게임 통계 스케줄 시작");
+		statisticsService.sendDailyGameStatistics();
 	}
 }
