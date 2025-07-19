@@ -17,6 +17,7 @@ import project.lolmonitor.service.riot.ChampionService;
 import project.lolmonitor.service.riot.GameStatusService;
 import project.lolmonitor.service.riot.RiotUserService;
 import project.lolmonitor.service.riot.SummonerLevelService;
+import project.lolmonitor.service.statistics.StatisticsService;
 
 @RestController
 @RequiredArgsConstructor
@@ -27,6 +28,7 @@ public class RiotController {
 	private final GameStatusService gameStatusService;
 	private final ChampionService championService;
 	private final SummonerLevelService summonerLevelService;
+	private final StatisticsService statisticsService;
 
 	/**
 	 * 라이엇 유저 DB에 추가 및 현재 게임 중 상태 확인
@@ -45,6 +47,11 @@ public class RiotController {
 		RiotUser riotUser = riotUserService.getRiotUser(gameNickname, tagLine);
 		summonerLevelService.checkSummonerLevel(riotUser);
 		return ResponseEntity.ok("✅ " + gameNickname + "#" + tagLine + " 상태 확인 완료");
+	}
+
+	@GetMapping("/statistics")
+	public void checkStatistics() {
+		statisticsService.sendDailyGameStatistics();
 	}
 
 	/**
