@@ -3,6 +3,9 @@ package project.lolmonitor.infra.riot.datahandler;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -10,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import project.lolmonitor.client.riot.dto.CurrentGameInfo;
 import project.lolmonitor.client.riot.dto.CurrentGameParticipant;
+import project.lolmonitor.infra.riot.dto.DailyUserGameStats;
 import project.lolmonitor.infra.riot.entity.GameSession;
 import project.lolmonitor.common.enums.GameStatus;
 import project.lolmonitor.infra.riot.entity.RiotUser;
@@ -66,5 +70,30 @@ public class GameSessionDataHandler {
 		GameSession gameSession = getActiveGameSession(puuid);
 		gameSession.endGame(LocalDateTime.now());
 		gameSessionRepository.save(gameSession);
+	}
+
+	@Transactional(readOnly = true)
+	public List<DailyUserGameStats> getDailyGameStatistics(LocalDateTime startTime, LocalDateTime endTime) {
+		// 모든 모니터링 대상 유저 조회
+		List<RiotUser> monitoredUsers = riotUserRepository.findByIsMonitoredTrue();
+
+		// 기간 내 완료된 게임 세션들 조회
+		List<GameSession> gameSessions = gameSessionRepository.findCompletedGamesByPeriod(startTime, endTime);
+
+		// 사용자별로 그룹화하여 게임 수 카운트
+		Map<RiotUser, Long> gameCountByUser = gameSessions.stream()
+														  .collect(Collectors.groupingBy(
+															  GameSession::getRiotUser,
+															  Collectors.counting()
+														  ));
+
+		// 모든 모니터링 유저에 대해 통계 생성 (0판인 경우도 포함)
+		return monitoredUsers.stream()
+							 .map(user -> new DailyUserGameStats(
+								 user.getDisplayName(),
+								 gameCountByUser.getOrDefault(user, 0L).intValue()
+							 ))
+							 .sorted((a, b) -> Integer.compare(b.totalGames(), a.totalGames())) // 게임 수 내림차순
+							 .collect(Collectors.toList());
 	}
 }

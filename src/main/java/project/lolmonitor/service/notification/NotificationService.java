@@ -3,7 +3,9 @@ package project.lolmonitor.service.notification;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -14,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import project.lolmonitor.common.enums.GameMode;
 import project.lolmonitor.infra.riot.datahandler.ChampionDataHandler;
+import project.lolmonitor.infra.riot.dto.DailyUserGameStats;
 import project.lolmonitor.infra.riot.entity.GameSession;
 import project.lolmonitor.infra.riot.entity.SummonerLevelHistory;
 
@@ -31,19 +34,31 @@ public class NotificationService {
 	@Value("${discord.level-up.url}")
 	private String levelUpUrl;
 
+	@Value("${discord.statistics.url}")
+	private String statisticsUrl;
+
 	@Value("${notification.retry.max-attempts:3}")
 	private int maxRetryAttempts;
 
 	private static final DateTimeFormatter SIMPLE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
+	// 게임 시작 알림
 	public void sendGameStartNotification(String playerName, GameSession gameSession, int gameCount) {
 		String message = createGameStartMessage(playerName, gameSession, gameCount);
 		sendDiscordNotification(message, gameStartUrl);
 	}
 
+	// 레벨업 알림
 	public void sendLevelUpNotification(String playerName, int previousLevel, SummonerLevelHistory levelHistory) {
 		String message = createLevelUpMessage(playerName, previousLevel, levelHistory);
 		sendDiscordNotification(message, levelUpUrl);
+	}
+
+	// 통계 알림
+	public void sendDailyStatisticsNotification(List<DailyUserGameStats> userStats,
+		LocalDateTime startTime, LocalDateTime endTime) {
+		String message = createDailyStatisticsMessage(userStats, startTime, endTime);
+		sendDiscordNotification(message, statisticsUrl);
 	}
 
 	private String createGameStartMessage(String playerName, GameSession gameSession, int gameCount) {
@@ -72,19 +87,19 @@ public class NotificationService {
 
 	private String createLevelUpMessage(String playerName, int previousLevel, SummonerLevelHistory levelHistory) {
 		return String.format("""
-            🎉🎉🎉 **레벨업 축하!** 🎉🎉🎉
-            
-            📍 **소환사 정보**
-              •  소환사 명 : **%s**
-              •  레벨 : %d → **%d**
-            
-            📍 **레벨업 통계**
-              •  레벨업 시간 : %s
-              •  소요 시간 : **%s**
-              •  플레이 판 수 : **%d 판**
-            
-            🔗 [OP.GG에서 보기](https://op.gg/summoners/kr/%s)
-            """,
+				🎉🎉🎉 **레벨업 축하!** 🎉🎉🎉
+				
+				📍 **소환사 정보**
+					•	소환사 명 : **%s**
+					•	레벨 : %d → **%d**
+				
+				📍 **레벨업 통계**
+					•	레벨업 시간 : %s
+					•	소요 시간 : **%s**
+					•	플레이 판 수 : **%d**
+				
+				🔗 [OP.GG에서 보기](https://op.gg/summoners/kr/%s)
+				""",
 			playerName,
 			previousLevel,
 			levelHistory.getLevel(),
@@ -95,6 +110,33 @@ public class NotificationService {
 		);
 	}
 
+	private String createDailyStatisticsMessage(List<DailyUserGameStats> userStats,
+		LocalDateTime startTime, LocalDateTime endTime) {
+		String header = String.format("""
+				📊📊📊 **일일 게임 통계** 📊📊📊
+				
+				📅 **기간**
+				•	%s ~ %s
+				
+				📋 **플레이어 통계**
+				""",
+			startTime.format(SIMPLE_FORMATTER),
+			endTime.format(SIMPLE_FORMATTER)
+		);
+
+		StringBuilder message = new StringBuilder(header);
+
+		for (int i = 0; i < userStats.size(); i++) {
+			DailyUserGameStats stats = userStats.get(i);
+			message.append(String.format("%d. **%s**: %d판\n",
+				i + 1,
+				stats.playerName(),
+				stats.totalGames()
+			));
+		}
+
+		return message.toString();
+	}
 
 	private String getChampionName(String championKey) {
 		String championName = championDataHandler.getChampionName(championKey);
