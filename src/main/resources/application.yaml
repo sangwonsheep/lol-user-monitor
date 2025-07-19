@@ -25,6 +25,8 @@ discord:
     url: ${DISCORD_GAME_START_WEBHOOK_URL}
   level-up:
     url: ${DISCORD_LEVEL_UP_WEBHOOK_URL}
+  statistics:
+    url: ${DISCORD_STATISTICS_WEBHOOK_URL}
 ---
 # -----------------------------
 #       LOCAL SETTINGS
