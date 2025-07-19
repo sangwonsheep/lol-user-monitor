@@ -25,8 +25,11 @@ public class NotificationService {
 	private final RestClient restClient;
 	private final ChampionDataHandler championDataHandler;
 
-	@Value("${discord.url}")
-	private String discordUrl;
+	@Value("${discord.game-start.url}")
+	private String gameStartUrl;
+
+	@Value("${discord.level-up.url}")
+	private String levelUpUrl;
 
 	@Value("${notification.retry.max-attempts:3}")
 	private int maxRetryAttempts;
@@ -35,12 +38,12 @@ public class NotificationService {
 
 	public void sendGameStartNotification(String playerName, GameSession gameSession, int gameCount) {
 		String message = createGameStartMessage(playerName, gameSession, gameCount);
-		sendDiscordNotification(message);
+		sendDiscordNotification(message, gameStartUrl);
 	}
 
 	public void sendLevelUpNotification(String playerName, int previousLevel, SummonerLevelHistory levelHistory) {
 		String message = createLevelUpMessage(playerName, previousLevel, levelHistory);
-		sendDiscordNotification(message);
+		sendDiscordNotification(message, levelUpUrl);
 	}
 
 	private String createGameStartMessage(String playerName, GameSession gameSession, int gameCount) {
@@ -125,7 +128,7 @@ public class NotificationService {
 		}
 	}
 
-	private void sendDiscordNotification(String message) {
+	private void sendDiscordNotification(String message, String discordUrl) {
 		if (discordUrl == null || discordUrl.trim().isEmpty()) {
 			log.info("Discord 웹훅 URL이 설정되지 않았습니다.");
 			return;

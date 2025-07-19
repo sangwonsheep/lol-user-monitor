@@ -21,7 +21,10 @@ riot:
     key: ${RIOT_API_KEY}
 
 discord:
-  url: ${DISCORD_WEBHOOK_URL}
+  game-start:
+    url: ${DISCORD_GAME_START_WEBHOOK_URL}
+  level-up:
+    url: ${DISCORD_LEVEL_UP_WEBHOOK_URL}
 ---
 # -----------------------------
 #       LOCAL SETTINGS
