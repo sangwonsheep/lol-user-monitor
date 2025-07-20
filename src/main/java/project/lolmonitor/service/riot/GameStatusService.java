@@ -14,7 +14,7 @@ import project.lolmonitor.infra.riot.datahandler.GameSessionDataHandler;
 import project.lolmonitor.infra.riot.datahandler.RiotUserDataHandler;
 import project.lolmonitor.infra.riot.entity.GameSession;
 import project.lolmonitor.infra.riot.entity.RiotUser;
-import project.lolmonitor.service.notification.NotificationService;
+import project.lolmonitor.service.notification.GameNotificationService;
 
 /**
  * 게임 상태 확인하는 서비스
@@ -26,7 +26,7 @@ public class GameStatusService {
 
 	private final RiotAsiaApi riotAccountApi;
 	private final RiotKoreaApi riotKoreaApi;
-	private final NotificationService notificationService;
+	private final GameNotificationService gameNotificationService;
 	private final RiotUserDataHandler riotUserDataHandler;
 	private final GameSessionDataHandler gameSessionDataHandler;
 
@@ -112,7 +112,7 @@ public class GameStatusService {
 			int gameCount = getGameCount(riotUser.getId());
 
 			// 알림 전송
-			notificationService.sendGameStartNotification(playerDisplayName, gameSession, gameCount);
+			gameNotificationService.sendGameStartNotification(playerDisplayName, gameSession, gameCount);
 
 			log.info("🎯 새 게임 시작 - DB저장 & 알림전송: {} (게임ID: {}, 모드: {})",
 				playerDisplayName, currentGame.gameId(), gameSession.getGameMode());

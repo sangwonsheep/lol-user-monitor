@@ -49,9 +49,28 @@ public class RiotController {
 		return ResponseEntity.ok("✅ " + gameNickname + "#" + tagLine + " 상태 확인 완료");
 	}
 
-	@GetMapping("/statistics")
-	public void checkStatistics() {
+	/**
+	 * 일간 통계
+	 */
+	@GetMapping("/daily-statistics")
+	public void checkDailyStatistics() {
 		statisticsService.sendDailyGameStatistics();
+	}
+
+	/**
+	 * 주간 통계
+	 */
+	@GetMapping("/weekly-statistics")
+	public void checkWeeklyStatistics() {
+		statisticsService.sendWeeklyGameStatistics();
+	}
+
+	/**
+	 * 월간 통계
+	 */
+	@GetMapping("/monthly-statistics")
+	public void checkMonthlyStatistics() {
+		statisticsService.sendMonthlyGameStatistics();
 	}
 
 	/**

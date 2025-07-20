@@ -15,7 +15,7 @@ import project.lolmonitor.infra.riot.datahandler.GameSessionDataHandler;
 import project.lolmonitor.infra.riot.datahandler.SummonerLevelHistoryDataHandler;
 import project.lolmonitor.infra.riot.entity.RiotUser;
 import project.lolmonitor.infra.riot.entity.SummonerLevelHistory;
-import project.lolmonitor.service.notification.NotificationService;
+import project.lolmonitor.service.notification.GameNotificationService;
 
 /**
  * 소환사 레벨 업 확인하는 서비스
@@ -26,7 +26,7 @@ import project.lolmonitor.service.notification.NotificationService;
 public class SummonerLevelService {
 
 	private final RiotKoreaApi riotKoreaApi;
-	private final NotificationService notificationService;
+	private final GameNotificationService gameNotificationService;
 	private final SummonerLevelHistoryDataHandler levelHistoryDataHandler;
 	private final GameSessionDataHandler gameSessionDataHandler;
 
@@ -75,7 +75,7 @@ public class SummonerLevelService {
 			riotUser, currentLevel, now, gamesSinceLastLevelUp, timeTaken);
 
 		// 디스코드 알림 전송
-		notificationService.sendLevelUpNotification(riotUser.getDisplayName(), previousLevel, levelHistory);
+		gameNotificationService.sendLevelUpNotification(riotUser.getDisplayName(), previousLevel, levelHistory);
 
 		log.info("🎉 {} 레벨업! {} → {} ({}시간, {}판)",
 			riotUser.getDisplayName(), previousLevel, currentLevel, timeTaken, gamesSinceLastLevelUp);

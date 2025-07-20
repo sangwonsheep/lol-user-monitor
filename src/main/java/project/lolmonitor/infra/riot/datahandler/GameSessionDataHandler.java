@@ -73,7 +73,7 @@ public class GameSessionDataHandler {
 	}
 
 	@Transactional(readOnly = true)
-	public List<DailyUserGameStats> getDailyGameStatistics(LocalDateTime startTime, LocalDateTime endTime) {
+	public List<DailyUserGameStats> getGameStatistics(LocalDateTime startTime, LocalDateTime endTime) {
 		// 모든 모니터링 대상 유저 조회
 		List<RiotUser> monitoredUsers = riotUserRepository.findByIsMonitoredTrue();
 
