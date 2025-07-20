@@ -2,63 +2,39 @@ package project.lolmonitor.service.notification;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.time.Duration;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
-import java.util.Map;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestClient;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import project.lolmonitor.client.notification.api.DiscordNotificationSender;
+import project.lolmonitor.common.enums.DiscordChannel;
 import project.lolmonitor.common.enums.GameMode;
 import project.lolmonitor.infra.riot.datahandler.ChampionDataHandler;
-import project.lolmonitor.infra.riot.dto.DailyUserGameStats;
 import project.lolmonitor.infra.riot.entity.GameSession;
 import project.lolmonitor.infra.riot.entity.SummonerLevelHistory;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class NotificationService {
+public class GameNotificationService {
 
-	private final RestClient restClient;
+	private final DiscordNotificationSender discordNotificationSender;
 	private final ChampionDataHandler championDataHandler;
-
-	@Value("${discord.game-start.url}")
-	private String gameStartUrl;
-
-	@Value("${discord.level-up.url}")
-	private String levelUpUrl;
-
-	@Value("${discord.statistics.url}")
-	private String statisticsUrl;
-
-	@Value("${notification.retry.max-attempts:3}")
-	private int maxRetryAttempts;
 
 	private static final DateTimeFormatter SIMPLE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
 	// 게임 시작 알림
 	public void sendGameStartNotification(String playerName, GameSession gameSession, int gameCount) {
 		String message = createGameStartMessage(playerName, gameSession, gameCount);
-		sendDiscordNotification(message, gameStartUrl);
+		discordNotificationSender.sendNotification(message, DiscordChannel.GAME_START);
 	}
 
 	// 레벨업 알림
 	public void sendLevelUpNotification(String playerName, int previousLevel, SummonerLevelHistory levelHistory) {
 		String message = createLevelUpMessage(playerName, previousLevel, levelHistory);
-		sendDiscordNotification(message, levelUpUrl);
-	}
-
-	// 통계 알림
-	public void sendDailyStatisticsNotification(List<DailyUserGameStats> userStats,
-		LocalDateTime startTime, LocalDateTime endTime) {
-		String message = createDailyStatisticsMessage(userStats, startTime, endTime);
-		sendDiscordNotification(message, statisticsUrl);
+		discordNotificationSender.sendNotification(message, DiscordChannel.LEVEL_UP);
 	}
 
 	private String createGameStartMessage(String playerName, GameSession gameSession, int gameCount) {
@@ -110,34 +86,6 @@ public class NotificationService {
 		);
 	}
 
-	private String createDailyStatisticsMessage(List<DailyUserGameStats> userStats,
-		LocalDateTime startTime, LocalDateTime endTime) {
-		String header = String.format("""
-				📊📊📊 **일일 게임 통계** 📊📊📊
-				
-				📅 **기간**
-				•	%s ~ %s
-				
-				📋 **플레이어 통계**
-				""",
-			startTime.format(SIMPLE_FORMATTER),
-			endTime.format(SIMPLE_FORMATTER)
-		);
-
-		StringBuilder message = new StringBuilder(header);
-
-		for (int i = 0; i < userStats.size(); i++) {
-			DailyUserGameStats stats = userStats.get(i);
-			message.append(String.format("%d. **%s**: %d판\n",
-				i + 1,
-				stats.playerName(),
-				stats.totalGames()
-			));
-		}
-
-		return message.toString();
-	}
-
 	private String getChampionName(String championKey) {
 		String championName = championDataHandler.getChampionName(championKey);
 		if (championName == null || championName.isEmpty()) {
@@ -167,40 +115,6 @@ public class NotificationService {
 			return String.format("%d시간", hoursPart);
 		} else {
 			return String.format("%d분", minutesPart);
-		}
-	}
-
-	private void sendDiscordNotification(String message, String discordUrl) {
-		if (discordUrl == null || discordUrl.trim().isEmpty()) {
-			log.info("Discord 웹훅 URL이 설정되지 않았습니다.");
-			return;
-		}
-
-		for (int attempt = 1; attempt <= maxRetryAttempts; attempt++) {
-			try {
-				Map<String, String> payload = Map.of("content", message);
-
-				restClient.post()
-						  .uri(discordUrl)
-						  .body(payload)
-						  .retrieve()
-						  .toBodilessEntity();
-
-				log.info("✅ Discord 알림 전송 성공 ({}번째 시도)", attempt);
-				return;
-
-			} catch (Exception e) {
-				log.error("❌ Discord 알림 전송 실패 ({}번째 시도): {}", attempt, e.getMessage());
-
-				if (attempt < maxRetryAttempts) {
-					try {
-						Thread.sleep(2000 * attempt); // 백오프 지연
-					} catch (InterruptedException ie) {
-						Thread.currentThread().interrupt();
-						break;
-					}
-				}
-			}
 		}
 	}
 }
