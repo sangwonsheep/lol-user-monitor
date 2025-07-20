@@ -85,4 +85,24 @@ public class RiotMonitorScheduler {
 		log.info("📊 일일 게임 통계 스케줄 시작");
 		statisticsService.sendDailyGameStatistics();
 	}
+
+	/**
+	 * 매주 월요일 09시에 주간 게임 통계 전송
+	 * (지난 주 월요일 09:00 ~ 월요일 09:00)
+	 */
+	@Scheduled(cron = "0 0 9 * * MON")
+	public void sendWeeklyStatistics() {
+		log.info("📈 주간 게임 통계 스케줄 시작");
+		statisticsService.sendWeeklyGameStatistics();
+	}
+
+	/**
+	 * 매월 1일 09시 30분에 월간 게임 통계 전송
+	 * (지난 달 1일 09:00 ~ 이번 달 1일 09:00)
+	 */
+	@Scheduled(cron = "0 30 9 1 * *")
+	public void sendMonthlyStatistics() {
+		log.info("📊 월간 게임 통계 스케줄 시작");
+		statisticsService.sendMonthlyGameStatistics();
+	}
 }
