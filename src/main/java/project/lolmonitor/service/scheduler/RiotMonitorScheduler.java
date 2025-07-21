@@ -78,9 +78,9 @@ public class RiotMonitorScheduler {
 	}
 
 	/**
-	 * 매일 18시에 일일 게임 통계 전송
+	 * 매일 08:30에 일일 게임 통계 전송
 	 */
-	@Scheduled(cron = "0 0 18 * * *") // 매일 18:00:00
+	@Scheduled(cron = "0 30 8 * * *") // 매일 08:30:00
 	public void sendDailyStatistics() {
 		log.info("📊 일일 게임 통계 스케줄 시작");
 		statisticsService.sendDailyGameStatistics();

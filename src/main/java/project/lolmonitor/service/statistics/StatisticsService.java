@@ -23,12 +23,12 @@ public class StatisticsService {
 
 	/**
 	 *	일간 게임 통계
-	 *	전날 18:00 ~ 오늘 18:00 게임 통계 생성 및 전송
+	 *	전날 08:30 ~ 오늘 08:30 게임 통계 생성 및 전송
 	 */
 	public void sendDailyGameStatistics() {
 		try {
-			LocalDateTime endTime = LocalDate.now().atTime(18, 0); // 오늘 18:00
-			LocalDateTime startTime = endTime.minusDays(1); // 전날 18:00
+			LocalDateTime endTime = LocalDate.now().atTime(8, 30); // 오늘 08:30
+			LocalDateTime startTime = endTime.minusDays(1); // 전날 08:30
 
 			log.info("📊 일일 게임 통계 생성: {} ~ {}", startTime, endTime);
 
