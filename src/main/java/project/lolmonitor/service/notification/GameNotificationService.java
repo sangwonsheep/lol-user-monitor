@@ -43,23 +43,20 @@ public class GameNotificationService {
 		return String.format("""
 				 🚨🚨🚨 **게임 시작** 🚨🚨🚨
 				
-				 📍 **유저 정보**
-				 	•	소환사 명 : **%s**
-				 	•	오늘 플레이 게임 수 : %d
-				 	•	누적 게임 수 : %d
-				
-				 📍 **게임 정보**
+				 📍 **정보**
+				 	•	소환사 명 : %s
 				 	•	시작 시간 : %s
 				 	•	챔피언 : 🔥 **%s** 🔥
+				 	•	오늘 플레이 게임 수 : %d
+				 	•	누적 게임 수 : %d
 				 	•	게임 모드 : %s
-				
 				 🔗 [OP.GG에서 보기](https://op.gg/summoners/kr/%s)
 				""",
 			playerName,
-			todayGameCount,
-			gameCount,
 			gameSession.getStartTime().format(FORMATTER_WITH_WEEKDAY),
 			getChampionName(String.valueOf(gameSession.getChampionId())),
+			todayGameCount,
+			gameCount,
 			GameMode.getKoreanName(gameSession.getGameMode()),
 			playerName.replace("#", "-")
 		);
