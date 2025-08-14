@@ -25,8 +25,12 @@ discord:
     url: ${DISCORD_GAME_START_WEBHOOK_URL}
   level-up:
     url: ${DISCORD_LEVEL_UP_WEBHOOK_URL}
-  statistics:
-    url: ${DISCORD_STATISTICS_WEBHOOK_URL}
+  daily-statistics:
+    url: ${DISCORD_DAILY_STATISTICS_WEBHOOK_URL}
+  weekly-statistics:
+    url: ${DISCORD_WEEKLY_STATISTICS_WEBHOOK_URL}
+  monthly-statistics:
+    url: ${DISCORD_MONTHLY_STATISTICS_WEBHOOK_URL}
 ---
 # -----------------------------
 #       LOCAL SETTINGS
@@ -39,7 +43,7 @@ spring:
     name: lol.local.server.api
   jpa:
     hibernate:
-      ddl-auto: create
+      ddl-auto: validate
   datasource:
     url: ${DOCKER_MYSQL_URL}
     username: ${DOCKER_MYSQL_USERNAME}
