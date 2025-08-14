@@ -28,7 +28,8 @@ public class GameNotificationService {
 		DateTimeFormatter.ofPattern("yyyy-MM-dd(E) HH:mm", Locale.KOREAN);
 
 	// 게임 시작 알림
-	public void sendGameStartNotification(String playerName, GameSession gameSession, int todayGameCount, int gameCount) {
+	public void sendGameStartNotification(String playerName, GameSession gameSession, int todayGameCount,
+		int gameCount) {
 		String message = createGameStartMessage(playerName, gameSession, todayGameCount, gameCount);
 		discordNotificationSender.sendNotification(message, DiscordChannel.GAME_START);
 	}
@@ -39,7 +40,8 @@ public class GameNotificationService {
 		discordNotificationSender.sendNotification(message, DiscordChannel.LEVEL_UP);
 	}
 
-	private String createGameStartMessage(String playerName, GameSession gameSession, int todayGameCount, int gameCount) {
+	private String createGameStartMessage(String playerName, GameSession gameSession, int todayGameCount,
+		int gameCount) {
 		return String.format("""
 				 🚨🚨🚨 **게임 시작** 🚨🚨🚨
 				
@@ -50,6 +52,7 @@ public class GameNotificationService {
 				 	•	오늘 플레이 게임 수 : %d
 				 	•	누적 게임 수 : %d
 				 	•	게임 모드 : %s
+				
 				 🔗 [OP.GG에서 보기](https://op.gg/summoners/kr/%s)
 				""",
 			playerName,
