@@ -21,7 +21,6 @@ public class StatisticsNotificationService {
 
 	private final DiscordNotificationSender discordNotificationSender;
 
-	// 요일이 포함된 포맷터 (한국어)
 	private static final DateTimeFormatter FORMATTER_WITH_WEEKDAY =
 		DateTimeFormatter.ofPattern("yyyy-MM-dd(E) HH:mm", Locale.KOREAN);
 

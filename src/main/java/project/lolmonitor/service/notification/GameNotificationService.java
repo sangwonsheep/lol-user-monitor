@@ -3,6 +3,7 @@ package project.lolmonitor.service.notification;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.format.DateTimeFormatter;
+import java.util.Locale;
 
 import org.springframework.stereotype.Service;
 
@@ -23,7 +24,8 @@ public class GameNotificationService {
 	private final DiscordNotificationSender discordNotificationSender;
 	private final ChampionDataHandler championDataHandler;
 
-	private static final DateTimeFormatter SIMPLE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+	private static final DateTimeFormatter FORMATTER_WITH_WEEKDAY =
+		DateTimeFormatter.ofPattern("yyyy-MM-dd(E) HH:mm", Locale.KOREAN);
 
 	// 게임 시작 알림
 	public void sendGameStartNotification(String playerName, GameSession gameSession, int todayGameCount, int gameCount) {
@@ -56,7 +58,7 @@ public class GameNotificationService {
 			playerName,
 			todayGameCount,
 			gameCount,
-			gameSession.getStartTime().format(SIMPLE_FORMATTER),
+			gameSession.getStartTime().format(FORMATTER_WITH_WEEKDAY),
 			getChampionName(String.valueOf(gameSession.getChampionId())),
 			GameMode.getKoreanName(gameSession.getGameMode()),
 			playerName.replace("#", "-")
@@ -81,7 +83,7 @@ public class GameNotificationService {
 			playerName,
 			previousLevel,
 			levelHistory.getLevel(),
-			levelHistory.getLevelUpTime().format(SIMPLE_FORMATTER),
+			levelHistory.getLevelUpTime().format(FORMATTER_WITH_WEEKDAY),
 			formatDuration(levelHistory.getTimeTakenHours()),
 			levelHistory.getGamesPlayedForLevelup(),
 			playerName.replace("#", "-")
