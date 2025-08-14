@@ -20,8 +20,14 @@ public class DiscordNotificationSender {
 	@Value("${discord.level-up.url}")
 	private String levelUpUrl;
 
-	@Value("${discord.statistics.url}")
-	private String statisticsUrl;
+	@Value("${discord.daily-statistics.url}")
+	private String dailyStatisticsUrl;
+
+	@Value("${discord.weekly-statistics.url}")
+	private String weeklyStatisticsUrl;
+
+	@Value("${discord.monthly-statistics.url}")
+	private String monthlyStatisticsUrl;
 
 	@Value("${notification.retry.max-attempts:3}")
 	private int maxRetryAttempts;
@@ -69,7 +75,9 @@ public class DiscordNotificationSender {
 		return switch (channel) {
 			case GAME_START -> gameStartUrl;
 			case LEVEL_UP -> levelUpUrl;
-			case STATISTICS -> statisticsUrl;
+			case DAILY_STATISTICS -> dailyStatisticsUrl;
+			case WEEKLY_STATISTICS -> weeklyStatisticsUrl;
+			case MONTHLY_STATISTICS -> monthlyStatisticsUrl;
 		};
 	}
 }

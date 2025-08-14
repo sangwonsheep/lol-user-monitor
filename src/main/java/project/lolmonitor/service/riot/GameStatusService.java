@@ -46,6 +46,40 @@ public class GameStatusService {
 		}
 	}
 
+	// 게임 중인지 확인
+	private void handleGameInProgress(String playerDisplayName, CurrentGameInfo currentGame, RiotUser riotUser) {
+		boolean gameProgressStatus = gameSessionDataHandler.existsGameSession(currentGame.gameId());
+
+		// 이미 존재하는 게임
+		if (gameProgressStatus) {
+			log.debug("🔄 {}, 게임ID {} 이미 존재하는 게임", playerDisplayName, currentGame.gameId());
+			return;
+		}
+
+		// 새로운 게임 시작
+		try {
+			CurrentGameParticipant player = findPlayerInGame(currentGame, riotUser.getPuuid());
+
+			// DB에 게임 세션 저장
+			GameSession gameSession = gameSessionDataHandler.startGameSession(currentGame, player, riotUser.getPuuid());
+
+			// 유저 누적 게임 수
+			int gameCount = getGameCount(riotUser.getId());
+
+			// 오늘 플레이한 게임 수
+			int todayGameCount = getTodayGameCount(riotUser.getId());
+
+			// 알림 전송
+			gameNotificationService.sendGameStartNotification(playerDisplayName, gameSession, todayGameCount, gameCount);
+
+			log.info("🎯 새 게임 시작 - DB저장 & 알림전송: {} (게임ID: {}, 모드: {})",
+				playerDisplayName, currentGame.gameId(), gameSession.getGameMode());
+
+		} catch (Exception e) {
+			log.error("❌ 게임 세션 처리 실패: {} - {}", playerDisplayName, e.getMessage());
+		}
+	}
+
 	// Riot User 획득
 	private RiotUser getRiotUser(String gameNickName, String tagLine) {
 		String cacheKey = gameNickName + "#" + tagLine;
@@ -71,6 +105,11 @@ public class GameStatusService {
 		return gameSessionDataHandler.countGameSessionsByRiotUser(riotUserId);
 	}
 
+	// 오늘 게임 판 수 획득
+	private int getTodayGameCount(Long riotUserId) {
+		return gameSessionDataHandler.countTodayAllGames(riotUserId);
+	}
+
 	// 현재 게임 상태 확인
 	private void checkCurrentGameStatus(String playerDisplayName, RiotUser riotUser) {
 		try {
@@ -88,37 +127,6 @@ public class GameStatusService {
 			log.error("🚫 API 권한 오류: {}", e.getMessage());
 		} catch (Exception e) {
 			log.error("💥 API 호출 실패: {}", e.getMessage());
-		}
-	}
-
-	// 게임 중인지 확인
-	private void handleGameInProgress(String playerDisplayName, CurrentGameInfo currentGame, RiotUser riotUser) {
-		boolean gameProgressStatus = gameSessionDataHandler.existsGameSession(currentGame.gameId());
-
-		// 이미 존재하는 게임
-		if (gameProgressStatus) {
-			log.debug("🔄 {}, 게임ID {} 이미 존재하는 게임", playerDisplayName, currentGame.gameId());
-			return;
-		}
-
-		// 새로운 게임 시작
-		try {
-			CurrentGameParticipant player = findPlayerInGame(currentGame, riotUser.getPuuid());
-
-			// DB에 게임 세션 저장
-			GameSession gameSession = gameSessionDataHandler.startGameSession(currentGame, player, riotUser.getPuuid());
-
-			// 유저 누적 게임 수
-			int gameCount = getGameCount(riotUser.getId());
-
-			// 알림 전송
-			gameNotificationService.sendGameStartNotification(playerDisplayName, gameSession, gameCount);
-
-			log.info("🎯 새 게임 시작 - DB저장 & 알림전송: {} (게임ID: {}, 모드: {})",
-				playerDisplayName, currentGame.gameId(), gameSession.getGameMode());
-
-		} catch (Exception e) {
-			log.error("❌ 게임 세션 처리 실패: {} - {}", playerDisplayName, e.getMessage());
 		}
 	}
 

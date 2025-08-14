@@ -16,6 +16,12 @@ public interface GameSessionRepository extends JpaRepository<GameSession, Long> 
 
 	int countByRiotUserIdAndGameStatusAndEndTimeAfter(Long riotUserId, GameStatus gameStatus, LocalDateTime since);
 
+	// 특정 유저의 특정 시간 이후 시작된 모든 게임 수 조회
+	int countByRiotUserIdAndStartTimeAfter(Long riotUserId, LocalDateTime startTime);
+
+	// 특정 유저의 특정 기간 동안 시작된 게임 수 조회 (연속 게임 일수 계산)
+	int countByRiotUserIdAndStartTimeBetween(Long riotUserId, LocalDateTime startTime, LocalDateTime endTime);
+
 	int countByRiotUserId(Long riotUserId);
 
 	boolean existsByGameId(Long gameId);
