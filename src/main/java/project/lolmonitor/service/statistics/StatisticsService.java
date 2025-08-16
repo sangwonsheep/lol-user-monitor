@@ -27,8 +27,8 @@ public class StatisticsService {
 	private final StatisticsNotificationService notificationService;
 
 	/**
-	 *	일간 게임 통계
-	 *	전날 08:30 ~ 오늘 08:30 게임 통계 생성 및 전송
+	 * 일간 게임 통계
+	 * 전날 08:30 ~ 오늘 08:30 게임 통계 생성 및 전송
 	 */
 	public void sendDailyGameStatistics() {
 		try {
@@ -39,15 +39,13 @@ public class StatisticsService {
 
 			List<DailyUserGameStats> userStats = gameSessionDataHandler.getGameStatistics(startTime, endTime);
 
-			// 게임한 유저가 있는지 확인 (0판 유저도 포함하되, 모든 유저가 0판이면 전송하지 않음)
-			boolean hasAnyGames = userStats.stream().anyMatch(stats -> stats.totalGames() > 0);
-
-			if (!hasAnyGames) {
-				log.info("📊 통계 기간 내 게임 데이터가 없습니다.");
+			// 모니터링 유저가 없는 경우에만 전송하지 않음
+			if (userStats.isEmpty()) {
+				log.info("📊 모니터링 대상 유저가 없습니다.");
 				return;
 			}
 
-			// 연속 게임 일수 정보 추가
+			// 연속 게임 일수 정보 추가 (게임한 유저만 대상)
 			Map<String, Integer> consecutiveDaysMap = calculateConsecutiveDaysForUsers(userStats, endTime);
 
 			notificationService.sendDailyStatisticsNotification(userStats, startTime, endTime, consecutiveDaysMap);
@@ -76,8 +74,9 @@ public class StatisticsService {
 
 			List<DailyUserGameStats> userStats = gameSessionDataHandler.getGameStatistics(startTime, endTime);
 
+			// 모니터링 유저가 없는 경우에만 전송하지 않음
 			if (userStats.isEmpty()) {
-				log.info("📈 지난 주 게임 데이터가 없습니다.");
+				log.info("📊 모니터링 대상 유저가 없습니다.");
 				return;
 			}
 
@@ -107,8 +106,9 @@ public class StatisticsService {
 
 			List<DailyUserGameStats> userStats = gameSessionDataHandler.getGameStatistics(startTime, endTime);
 
+			// 모니터링 유저가 없는 경우에만 전송하지 않음
 			if (userStats.isEmpty()) {
-				log.info("📊 지난 달 게임 데이터가 없습니다.");
+				log.info("📊 모니터링 대상 유저가 없습니다.");
 				return;
 			}
 
