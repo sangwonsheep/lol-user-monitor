@@ -87,7 +87,8 @@ public class StatisticsNotificationService {
             %s
             
             %s **기간**
-               •  %s ~ %s
+                  %s
+                  ~ %s
             
             🏆 **플레이어 통계**
             """,
